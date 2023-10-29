@@ -68,16 +68,20 @@ defmodule Taskir do
   end
 
   @spec main(String.t, String.t) :: any
-  def main(context_path, tasks_path) do
+  def main(context_path, tasks_path) when is_binary(context_path) do
     case File.read!(context_path) |> Yaml.decode() do
-      {:ok, [context | _]} ->
-        case File.read!(tasks_path) |> Yaml.decode() do
-          {:ok, tasks} -> run(context, tasks)
-          {:error, error} -> IO.puts("Failed to decode tasks file #{error}")
-        end
+      {:ok, [context | _]} -> main(context, tasks_path)
 
       {:error, error} ->
         IO.puts("Failed to decode context file #{error}")
+    end
+  end
+
+  @spec main(map, String.t) :: any
+  def main(context, tasks_path) when is_map(context) do
+    case File.read!(tasks_path) |> Yaml.decode() do
+      {:ok, tasks} -> run(context, tasks)
+      {:error, error} -> IO.puts("Failed to decode tasks file #{error}")
     end
   end
 end
