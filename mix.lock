@@ -1,0 +1,5 @@
+%{
+  "json": {:hex, :json, "1.4.1", "8648f04a9439765ad449bc56a3ff7d8b11dd44ff08ffcdefc4329f7c93843dfa", [:mix], [], "hexpm", "9abf218dbe4ea4fcb875e087d5f904ef263d012ee5ed21d46e9dbca63f053d16"},
+  "yamerl": {:hex, :yamerl, "0.10.0", "4ff81fee2f1f6a46f1700c0d880b24d193ddb74bd14ef42cb0bcf46e81ef2f8e", [:rebar3], [], "hexpm", "346adb2963f1051dc837a2364e4acf6eb7d80097c0f53cbdc3046ec8ec4b4e6e"},
+  "yamlixir": {:hex, :yamlixir, "1.0.3", "f9980defc761fcac7bde376dcaf65247f09c163f279da959849bf65858d8de4c", [:mix], [{:yamerl, "~> 0.7", [hex: :yamerl, repo: "hexpm", optional: false]}], "hexpm", "33fe0ea91507bbf31e7d5ce1acb7322e04a738a7035acf951a4194c170e3d236"},
+}

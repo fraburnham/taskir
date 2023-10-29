@@ -1,0 +1,22 @@
+---
+- type: bash
+  body: |
+    pwd
+    echo "CUSTOM: $CUSTOM"
+    echo "This is only a test!"
+    echo "This is only a test!" | sed 's/This/WAT/'
+- command: python3
+  body: |
+    print("Oh python hello")
+- type: typescript
+  body: |
+    console.log("Hello ts!")
+- type: typescript
+  script: test.ts
+---
+- type: bash
+  body: |
+    echo "Moar!"
+- command: node
+  body: |
+    console.log("Hello node!")
