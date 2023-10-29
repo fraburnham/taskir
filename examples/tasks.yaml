@@ -12,7 +12,7 @@
   body: |
     console.log("Hello ts!")
 - type: typescript
-  script: test.ts
+  script: examples/test.ts
 ---
 - type: bash
   body: |
