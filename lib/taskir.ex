@@ -1,7 +1,7 @@
 defmodule Taskir do
   alias Yamlixir, as: Yaml
 
-  @spec run_task(map, map) :: {atom, String.t}
+  @spec run_task(map, map) :: {atom, String.t()}
   def run_task(context, task = %{"command" => command, "script" => script}) do
     {output, exit_code} =
       System.cmd(
@@ -14,10 +14,11 @@ defmodule Taskir do
     if exit_code == 0, do: {:ok, output}, else: {:error, output}
   end
 
-  @spec run_task(map, map) :: {atom, String.t}
+  @spec run_task(map, map) :: {atom, String.t()}
   def run_task(context, task = %{"command" => _, "body" => body}) do
     # This should be a much much better random file name generator (probably make a temp dir related to each task chain...)
-    script_path = "/tmp/taskir-script-#{Enum.random(1..100)}-#{Enum.random(1..100)}.#{task["script_file_extension"]}"
+    script_path =
+      "/tmp/taskir-script-#{Enum.random(1..100)}-#{Enum.random(1..100)}.#{task["script_file_extension"]}"
 
     case File.open(script_path, [:write]) do
       {:ok, file} ->
@@ -31,17 +32,17 @@ defmodule Taskir do
     run_task(context, Map.put(task, "script", script_path))
   end
 
-  @spec run_task(map, map) :: {atom, String.t}
+  @spec run_task(map, map) :: {atom, String.t()}
   def run_task(context, task = %{"type" => "bash"}) do
     run_task(context, Map.put(task, "command", "bash"))
   end
 
-  @spec run_task(map, map) :: {atom, String.t}
+  @spec run_task(map, map) :: {atom, String.t()}
   def run_task(context, task = %{"type" => "python"}) do
     run_task(context, Map.put(task, "command", "python"))
   end
 
-  @spec run_task(map, map) :: {atom, String.t}
+  @spec run_task(map, map) :: {atom, String.t()}
   def run_task(context, task = %{"type" => "typescript"}) do
     run_task(
       context,
