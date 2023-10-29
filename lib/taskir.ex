@@ -56,18 +56,14 @@ defmodule Taskir do
   def run(_, []), do: {:ok, ""}
 
   def run(context, [task | tasks]) when is_map(task) do
-    case run_task(context, task) do
-      {:ok, output} ->
-        case run(context, tasks) do
-          {:ok, rest_output} ->
-            {:ok, output <> rest_output}
+    with {:ok, task_output} <- run_task(context, task) do
+      case run(context, tasks) do
+	{:ok, rest_output} ->
+          {:ok, task_output <> rest_output}
 
-          {:error, rest_output} ->
-            {:error, output <> rest_output}
-        end
-
-      {:error, output} ->
-        {:error, output}
+        {:error, rest_output} ->
+          {:error, task_output <> rest_output}
+      end
     end
   end
 
