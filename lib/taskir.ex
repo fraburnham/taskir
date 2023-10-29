@@ -16,9 +16,10 @@ defmodule Taskir do
 
   @spec run_task(map, map) :: {atom, String.t()}
   def run_task(context, task = %{"command" => _, "body" => body}) do
-    # This should be a much much better random file name generator (probably make a temp dir related to each task chain...)
+    rand = for _ <- 1..40, into: "", do: <<Enum.random(~c"0123456789abcdef")>>
+
     script_path =
-      "/tmp/taskir-script-#{Enum.random(1..100)}-#{Enum.random(1..100)}.#{task["script_file_extension"]}"
+      "/tmp/taskir-script-#{rand}.#{task["script_file_extension"]}"
 
     case File.open(script_path, [:write]) do
       {:ok, file} ->
