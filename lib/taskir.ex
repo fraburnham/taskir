@@ -52,19 +52,25 @@ defmodule Taskir do
     )
   end
 
-  def run(_context, []), do: :success
+  def run(_, []), do: {:ok, ""}
 
   def run(context, [task | tasks]) when is_map(task) do
-    {status, output} = run_task(context, task)
+    case run_task(context, task) do
+      {:ok, output} ->
+        case run(context, tasks) do
+          {:ok, rest_output} ->
+            {:ok, output <> rest_output}
 
-    # What this _should_ do is transfer the data from stdout/stderr streams into a stream for these tasks
-    IO.puts(output)
-    if status == :ok, do: run(context, tasks), else: :error
+          {:error, rest_output} ->
+            {:error, output <> rest_output}
+        end
+
+      {:error, output} ->
+        {:error, output}
+    end
   end
 
   def run(context, task_chains = [task_chain | _]) when is_list(task_chain) do
-    # task_chains are independent (and soon to be run in parallel)
-    # so they can be run w/o checking on the result (their lower level fns should handle output details)
     Enum.map(task_chains, fn task_chain -> run(context, task_chain) end)
   end
 
