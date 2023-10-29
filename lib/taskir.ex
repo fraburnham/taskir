@@ -75,18 +75,25 @@ defmodule Taskir do
     Enum.map(task_chains, fn task_chain -> run(context, task_chain) end)
   end
 
-  @spec main(String.t(), String.t()) :: {atom, String.t()}
+  def print_results([]), do: IO.puts("")
+
+  def print_results([{_, output} | results]) do
+    IO.puts(output)
+    print_results(results)
+  end
+
+  @spec main(String.t(), String.t()) :: any
   def main(context_path, tasks_path) when is_binary(context_path) do
     case File.read!(context_path) |> Yaml.decode() do
       {:ok, [context | _]} ->
-        main(context, tasks_path)
+        print_results(main(context, tasks_path))
 
       {:error, error} ->
         {:error, "Failed to decode context file #{error}"}
     end
   end
 
-  @spec main(map, String.t()) :: {atom, String.t()}
+  @spec main(map, String.t()) :: list({atom, String.t()})
   def main(context, tasks_path) when is_map(context) do
     case File.read!(tasks_path) |> Yaml.decode() do
       {:ok, tasks} ->
