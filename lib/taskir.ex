@@ -58,7 +58,7 @@ defmodule Taskir do
   def run(context, [task | tasks]) when is_map(task) do
     with {:ok, task_output} <- run_task(context, task) do
       case run(context, tasks) do
-	{:ok, rest_output} ->
+        {:ok, rest_output} ->
           {:ok, task_output <> rest_output}
 
         {:error, rest_output} ->
