@@ -8,7 +8,8 @@ defmodule Taskir do
         command,
         (task["args"] || []) ++ [script],
         cd: context["workdir"] || File.cwd!(),
-        env: context["env"] || []
+        env: context["env"] || [],
+	stderr_to_stdout: true
       )
 
     if exit_code == 0, do: {:ok, output}, else: {:error, output}
