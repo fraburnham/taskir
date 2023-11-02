@@ -3,7 +3,7 @@
   body: |
     [[ "$REF" != "refs/heads/main" ]] && exit 0
 
-    git remote add github git@github.com:fraburnham/triggir
+    git remote add github git@github.com:fraburnham/taskir
     git checkout main
     git push github main
     git push github --tags
