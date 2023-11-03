@@ -30,3 +30,15 @@
 - type: bash
   body: |
     echo "!! if you see me run !!"
+---
+- type: bash
+  body: |
+    sleep 2
+---
+- type: bash
+  body: |
+    sleep 2
+---
+- type: bash
+  body: |
+    sleep 2

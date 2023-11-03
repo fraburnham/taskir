@@ -9,7 +9,7 @@ defmodule Taskir do
         (task["args"] || []) ++ [script],
         cd: context["workdir"] || File.cwd!(),
         env: context["env"] || [],
-	stderr_to_stdout: true
+        stderr_to_stdout: true
       )
 
     if exit_code == 0, do: {:ok, output}, else: {:error, output}
@@ -69,7 +69,31 @@ defmodule Taskir do
   end
 
   def run(context, task_chains = [task_chain | _]) when is_list(task_chain) do
-    Enum.map(task_chains, fn task_chain -> run(context, task_chain) end)
+    parent = self()
+
+    # start processes
+    task_chains
+    |> Stream.with_index()
+    |> Enum.map(fn {task_chain, id} ->
+      spawn(fn ->
+	send(parent, {run(context, task_chain), id})
+      end)
+    end)
+
+    # get response, sort, strip metadata
+    1..length(task_chains)
+    |> Stream.map(fn _ ->
+      receive do
+	response ->
+	  response
+      end
+    end)
+    |> Enum.sort(fn {_, a_id}, {_, b_id} ->
+      a_id <= b_id
+    end)
+    |> Enum.map(fn {data, _} ->
+      data
+    end)
   end
 
   def print_results([]), do: IO.puts("")
