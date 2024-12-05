@@ -12,7 +12,7 @@ by adding `taskir` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:taskir, "~> 0.1.0"}
+    {:taskir, "~> 1.0.0"}
   ]
 end
 ```
