@@ -3,16 +3,17 @@ defmodule Taskir do
 
   @spec run_task(map, map) :: {atom, String.t()}
   def run_task(context, task = %{"command" => command, "script" => script}) do
-    {output, exit_code} =
-      System.cmd(
-        command,
-        (task["args"] || []) ++ [script],
-        cd: context["workdir"] || File.cwd!(),
-        env: context["env"] || [],
-        stderr_to_stdout: true
-      )
-
-    if exit_code == 0, do: {:ok, output}, else: {:error, output}
+    case System.cmd(
+           command,
+           (task["args"] || []) ++ [script],
+           cd: context["workdir"] || File.cwd!(),
+           env: context["env"] || [],
+           into: context["output_collectable"] || IO.stream(),
+           stderr_to_stdout: true
+         ) do
+      {_, 0} -> :ok
+      _ -> :error
+    end
   end
 
   @spec run_task(map, map) :: {atom, String.t()}
@@ -54,17 +55,11 @@ defmodule Taskir do
     )
   end
 
-  def run(_, []), do: {:ok, ""}
+  def run(_, []), do: :ok
 
   def run(context, [task | tasks]) when is_map(task) do
-    with {:ok, task_output} <- run_task(context, task) do
-      case run(context, tasks) do
-        {:ok, rest_output} ->
-          {:ok, task_output <> rest_output}
-
-        {:error, rest_output} ->
-          {:error, task_output <> rest_output}
-      end
+    with :ok <- run_task(context, task) do
+      run(context, tasks)
     end
   end
 
@@ -76,7 +71,7 @@ defmodule Taskir do
     |> Stream.with_index()
     |> Enum.map(fn {task_chain, id} ->
       spawn(fn ->
-	send(parent, {run(context, task_chain), id})
+        send(parent, {run(context, task_chain), id})
       end)
     end)
 
@@ -84,8 +79,8 @@ defmodule Taskir do
     1..length(task_chains)
     |> Stream.map(fn _ ->
       receive do
-	response ->
-	  response
+        response ->
+          response
       end
     end)
     |> Enum.sort(fn {_, a_id}, {_, b_id} ->
@@ -96,18 +91,11 @@ defmodule Taskir do
     end)
   end
 
-  def print_results([]), do: IO.puts("")
-
-  def print_results([{_, output} | results]) do
-    IO.puts(output)
-    print_results(results)
-  end
-
   @spec main(String.t(), String.t()) :: any
   def main(context_path, tasks_path) when is_binary(context_path) do
     case File.read!(context_path) |> Yaml.decode() do
       {:ok, [context | _]} ->
-        print_results(main(context, tasks_path))
+        main(context, tasks_path)
 
       {:error, error} ->
         {:error, "Failed to decode context file #{error}"}
