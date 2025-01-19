@@ -7,8 +7,7 @@ defmodule Taskir do
         task = %{
           "command" => command,
           "script" => script,
-          "document_index" => doc_index,
-          "task_index" => task_index
+          "output_collectable" => output_collectable
         }
       ) do
     case System.cmd(
@@ -16,16 +15,33 @@ defmodule Taskir do
            (task["args"] || []) ++ [script],
            cd: context["workdir"] || File.cwd!(),
            env: context["env"] || [],
-           # TODO: allow passing in _something_ that influences the file name
-           into:
-             File.stream!("#{context["workdir"]}/.taskir-output.#{doc_index}.#{task_index}",
-               encoding: :utf8
-             ),
+           into: output_collectable,
            stderr_to_stdout: true
          ) do
       {_, 0} -> :ok
       _ -> :error
     end
+  end
+
+  @spec run_task(map, map) :: {atom, String.t()}
+  def run_task(
+        context,
+        task = %{
+          "command" => _,
+          "script" => _
+        }
+      ) do
+    run_task(
+      context,
+      Map.put(
+        task,
+        "output_collectable",
+        File.stream!(
+          "#{context["workdir"]}/.taskir-output.#{task["group_name"] || task["document_index"]}.#{task["task_name"] || task["task_index"]}",
+          encoding: :utf8
+        )
+      )
+    )
   end
 
   @spec run_task(map, map) :: {atom, String.t()}
