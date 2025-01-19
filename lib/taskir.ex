@@ -28,7 +28,9 @@ defmodule Taskir do
         context,
         task = %{
           "command" => _,
-          "script" => _
+          "script" => _,
+          "document_index" => document_index,
+          "task_index" => task_index
         }
       ) do
     run_task(
@@ -37,7 +39,7 @@ defmodule Taskir do
         task,
         "output_collectable",
         File.stream!(
-          "#{context["workdir"]}/.taskir-output.#{task["group_name"] || task["document_index"]}.#{task["task_name"] || task["task_index"]}",
+          "#{context["workdir"]}/.taskir-output.#{document_index}.#{task["group_name"] || document_index}.#{task_index}.#{task["task_name"] || task_index}",
           encoding: :utf8
         )
       )
