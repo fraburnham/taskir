@@ -2,13 +2,25 @@ defmodule Taskir do
   alias Yamlixir, as: Yaml
 
   @spec run_task(map, map) :: {atom, String.t()}
-  def run_task(context, task = %{"command" => command, "script" => script}) do
+  def run_task(
+        context,
+        task = %{
+          "command" => command,
+          "script" => script,
+          "document_index" => doc_index,
+          "task_index" => task_index
+        }
+      ) do
     case System.cmd(
            command,
            (task["args"] || []) ++ [script],
            cd: context["workdir"] || File.cwd!(),
            env: context["env"] || [],
-           into: context["output_collectable"] || IO.stream(),
+           # TODO: allow passing in _something_ that influences the file name
+           into:
+             File.stream!("#{context["workdir"]}/.taskir-output.#{doc_index}.#{task_index}",
+               encoding: :utf8
+             ),
            stderr_to_stdout: true
          ) do
       {_, 0} -> :ok
@@ -86,27 +98,28 @@ defmodule Taskir do
     |> Enum.sort(fn {_, a_id}, {_, b_id} ->
       a_id <= b_id
     end)
-    |> Enum.map(fn {data, _} ->
-      data
+    |> Enum.map(fn {status, _} ->
+      status
     end)
   end
 
-  @spec main(String.t(), String.t()) :: any
-  def main(context_path, tasks_path) when is_binary(context_path) do
-    case File.read!(context_path) |> Yaml.decode() do
-      {:ok, [context | _]} ->
-        main(context, tasks_path)
-
-      {:error, error} ->
-        {:error, "Failed to decode context file #{error}"}
-    end
+  def add_indexes(tasks) do
+    tasks
+    |> Stream.with_index()
+    |> Enum.map(fn {task_chain, doc_id} ->
+      task_chain
+      |> Stream.with_index()
+      |> Enum.map(fn {task, task_id} ->
+        task |> Map.put("document_index", doc_id) |> Map.put("task_index", task_id)
+      end)
+    end)
   end
 
   @spec main(map, String.t()) :: list({atom, String.t()})
-  def main(context, tasks_path) when is_map(context) do
+  def main(context, tasks_path) do
     case File.read!(tasks_path) |> Yaml.decode() do
       {:ok, tasks} ->
-        run(context, tasks)
+        run(context, add_indexes(tasks))
 
       {:error, error} ->
         {:error, "Failed to decode tasks file #{error}"}
